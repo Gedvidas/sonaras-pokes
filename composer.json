@@ -1,0 +1,9 @@
+{
+  "name": "gedwu/pokes",
+  "description": "web aplikaciją, su vartotojų registracija, prisijungimu ir galimybe išsiųsti kitam vartotojui poke",
+  "autoload": {
+    "psr-4": {
+      "App\\": "app"
+    }
+  }
+}
