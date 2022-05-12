@@ -15,7 +15,7 @@ class User
     public function create($username, $password, $email): bool
     {
         $sql = "INSERT INTO `users` (`username`, `password`, `email`) VALUES (:username, :password, :email)";
-//        $stmt = $pdo->prepare($sql);
+        $stmt = Application::$pdo->prepare($sql);
         $stmt->bindValue(':username', $username, PDO::PARAM_STR);
         $stmt->bindValue(':password', sha1($password), PDO::PARAM_STR); // uzhesuojam password
         $stmt->bindValue(':email', $email, PDO::PARAM_STR);
