@@ -29,8 +29,9 @@ class Router
         $method = $this->request->getMethod();
         $callback =  self::$routes[$method][$path] ?? false;
         if (!$callback) {
-            echo "Not found";
-            exit();
+            http_response_code(404);
+            include(VIEW_ROOT . '404.php'); // provide your own HTML for the error page
+            die();
         }
         if (is_array($callback)) {
             $callback[0] = new $callback[0]();
