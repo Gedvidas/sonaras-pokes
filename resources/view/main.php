@@ -1,12 +1,11 @@
 <?php require_once VIEW_ROOT . 'partials/header.php' ?>
 
-    <form>
-
-
+    <form method="post" action="/register">
+<!--        Registration form-->
         <div class="form-group">
             <label  class="col-sm-2 control-label">Vartotojo vardas:</label>
             <div class="col-sm-10">
-                <input type="text" id="username" class="form-control"  placeholder="Jonas123">
+                <input type="text" name="username" id="username" class="form-control"  placeholder="Jonas123">
             </div>
         </div>
         <div class="form-group">
@@ -14,7 +13,7 @@
             <div class="col-sm-10">
                 <div class="input-group">
                     <span class="input-group-addon">@</span>
-                    <input type="email" id="email" class="form-control" placeholder="jonas@jonaitis.lt">
+                    <input type="email" name="email" id="email" class="form-control" placeholder="jonas@jonaitis.lt">
                 </div>
             </div>
         </div>
@@ -22,13 +21,13 @@
         <div class="form-group">
             <label class="col-sm-2 control-label">Slaptažodis:</label>
             <div class="col-sm-10">
-                <input type="password" id="pass1" class="form-control"  placeholder="******">
+                <input type="password" name="pass1" id="pass1" class="form-control"  placeholder="******">
             </div>
         </div>
         <div class="form-group">
             <label for="inputPassword3" class="col-sm-2 control-label">Pakartokite slaptažodi:</label>
             <div class="col-sm-10">
-                <input type="password" id="pass2" class="form-control" placeholder="******">
+                <input type="password" name="pass2" id="pass2" class="form-control" placeholder="******">
             </div>
         </div>
         <br>
@@ -38,7 +37,7 @@
             </div>
         </div>
 
-
+<!--        Errors and Confirmations-->
         <div id="error" class="alert alert-danger hidden d-none" role="alert">
         </div>
         <div id="confirmation" class="alert alert-success d-none" role="alert">

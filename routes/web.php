@@ -10,3 +10,4 @@ use App\Http\Controllers\UserController;
 //echo 'WQE'; die();
 \App\Core\Router::get('/register', [UserController::class, 'register'] );
 Router::get('/register', [UserController::class, 'register'] );
+Router::get('/', [UserController::class, 'index'] );
