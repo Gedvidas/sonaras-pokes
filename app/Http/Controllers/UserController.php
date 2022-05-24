@@ -30,7 +30,7 @@ class UserController
         if ($request->getMethod() === 'get') {
             require_once VIEW_ROOT . 'login.php';
         } else {
-            $user = self::getUserFromRequest($request);
+            $user = self::getUserFromRequest($request, 'login');
             if (!$user) {
                 return false;
             }
@@ -65,29 +65,32 @@ class UserController
         require_once VIEW_ROOT . 'main.php';
     }
 
-    public static function getUserFromRequest(Request $request)
+    public static function getUserFromRequest(Request $request, $action = 'register')
     {
         $user = new User();
-        if (!isset($request->getBody()['username']) || empty($request->getBody()['username'])) {
-            Application::$errors['username'] = 'Vartotojo vardas neivestas';
-            Application::$old['username'] = false;
-        } else {
-            Application::$old['username'] = $request->getBody()['username'];
+        if ($action === 'register') {
+            if (!isset($request->getBody()['username']) || empty($request->getBody()['username'])) {
+                Application::$errors['username'] = 'Vartotojo vardas neivestas';
+                Application::$old['username'] = false;
+            } else {
+                Application::$old['username'] = $request->getBody()['username'];
+            }
+            if(!preg_match('/^\w{5,}$/', $request->getBody()['username'])) {
+                Application::$errors['username'] = 'Vartotojo vardas blogas';
+            } elseif(User::existName($request->getBody()['username'])) {
+                Application::$errors['username'] = 'Vartotojo vardas jau naudojamas';
+            }
+            else {
+                $user->name = $request->getBody()['username'];
+            }
         }
-        if(!preg_match('/^\w{5,}$/', $request->getBody()['username'])) {
-            Application::$errors['username'] = 'Vartotojo vardas blogas';
-        } elseif(User::existName($request->getBody()['username'])) {
-            Application::$errors['username'] = 'Vartotojo vardas jau naudojamas';
-        }
-        else {
-            $user->name = $request->getBody()['username'];
-        }
+
 //        --------------------------------------------
         if (!isset($request->getBody()['email']) || empty($request->getBody()['email'])) {
             Application::$errors['email'] = 'El. pastas neivestas';
         } elseif(!filter_var($request->getBody()['email'], FILTER_VALIDATE_EMAIL)) {
             Application::$errors['email'] = 'El pastas blogas';
-        } elseif(User::existEmail($request->getBody()['email'])) {
+        } elseif($action === 'register' && User::existEmail($request->getBody()['email'])) {
             Application::$errors['email'] = 'El pasta jau naudojamas';
         }
         else {
@@ -99,13 +102,17 @@ class UserController
         } elseif(!preg_match('@[A-Z]@', $request->getBody()['pass1']) || !preg_match('@[a-z]@', $request->getBody()['pass1'])) {
             Application::$errors['pass1'] = 'Slaptazodi turi sudaryti bent 1 didzioji raide, bent 1 skaicius';
         }
-        if (!isset($request->getBody()['pass2']) || empty($request->getBody()['pass2'])) {
-            Application::$errors['pass2'] = 'Slaptazodio pakartojimas neivestas';
-        } elseif($request->getBody()['pass1'] !== $request->getBody()['pass2']) {
-            Application::$errors['pass1'] = '*';
-            Application::$errors['pass2'] = 'Nesutampa salptazodziai';
-        } else {
-            $user->email = $request->getBody()['email'];
+
+        if ($action === 'register') {
+            if (!isset($request->getBody()['pass2']) || empty($request->getBody()['pass2'])) {
+                Application::$errors['pass2'] = 'Slaptazodio pakartojimas neivestas';
+            } elseif($request->getBody()['pass1'] !== $request->getBody()['pass2']) {
+                Application::$errors['pass1'] = '*';
+                Application::$errors['pass2'] = 'Nesutampa salptazodziai';
+            }
+        }
+        else {
+            $user->password = $request->getBody()['pass1'];
         }
 
         if (empty(Application::$errors)) {
