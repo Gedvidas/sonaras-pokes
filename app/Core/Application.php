@@ -13,6 +13,8 @@ class Application
     public static array $response;
     public Router $router;
     public Request $request;
+    public static array $errors;
+    public static array $old;
 
     public function __construct() {
         session_start();

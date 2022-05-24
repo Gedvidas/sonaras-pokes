@@ -34,6 +34,24 @@ class User
         return $result;
     }
 
+    public static function existEmail(string  $email){
+        $sql = "SELECT `id` FROM `users` WHERE email = :email LIMIT 1";
+        $stmt = Application::$pdo->prepare($sql);
+        $stmt->bindValue(':email', $email, PDO::PARAM_INT);
+        $stmt->execute();
+        $result =   $stmt->fetchColumn();
+        return $result;
+    }
+
+        public static function existName(string $name) {
+        $sql = "SELECT `id` FROM `users` WHERE username = :username LIMIT 1";
+        $stmt = Application::$pdo->prepare($sql);
+        $stmt->bindValue(':username', $name, PDO::PARAM_INT);
+        $stmt->execute();
+        $result =   $stmt->fetchColumn();
+        return $result;
+    }
+
     public function getUserById(int $id): User
     {
         $sql = "SELECT * FROM `users` WHERE id = :id LIMIT 1";
