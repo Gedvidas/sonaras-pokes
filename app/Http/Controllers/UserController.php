@@ -88,7 +88,11 @@ class UserController
 //        --------------------------------------------
         if (!isset($request->getBody()['email']) || empty($request->getBody()['email'])) {
             Application::$errors['email'] = 'El. pastas neivestas';
-        } elseif(!filter_var($request->getBody()['email'], FILTER_VALIDATE_EMAIL)) {
+            Application::$old['email'] = false;
+        } else {
+            Application::$old['email'] = $request->getBody()['email'];
+
+        } if(!filter_var($request->getBody()['email'], FILTER_VALIDATE_EMAIL)) {
             Application::$errors['email'] = 'El pastas blogas';
         } elseif($action === 'register' && User::existEmail($request->getBody()['email'])) {
             Application::$errors['email'] = 'El pasta jau naudojamas';
@@ -99,7 +103,11 @@ class UserController
 //        --------------------------------------------
         if (!isset($request->getBody()['pass1']) || empty($request->getBody()['pass1'])) {
             Application::$errors['pass1'] = 'Slaptazodis neivestas';
-        } elseif(!preg_match('@[A-Z]@', $request->getBody()['pass1']) || !preg_match('@[a-z]@', $request->getBody()['pass1'])) {
+        } else {
+            $user->password = $request->getBody()['pass1'];
+
+        }
+        if(!preg_match('@[A-Z]@', $request->getBody()['pass1']) || !preg_match('@[a-z]@', $request->getBody()['pass1'])) {
             Application::$errors['pass1'] = 'Slaptazodi turi sudaryti bent 1 didzioji raide, bent 1 skaicius';
         }
 
@@ -110,9 +118,6 @@ class UserController
                 Application::$errors['pass1'] = '*';
                 Application::$errors['pass2'] = 'Nesutampa salptazodziai';
             }
-        }
-        else {
-            $user->password = $request->getBody()['pass1'];
         }
 
         if (empty(Application::$errors)) {
