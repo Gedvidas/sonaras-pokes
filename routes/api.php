@@ -1,9 +1,10 @@
 <?php
 
 
+use App\Core\Router;
 use App\Http\Controllers\UserController;
 
 require_once  $_SERVER['DOCUMENT_ROOT'] . '/app/Core/Router.php';
 
-//echo 'WQE'; die();
-\App\Core\Router::post('/register', [UserController::class, 'insert'] );
+Router::post('/register', [UserController::class, 'register'] );
+Router::post('/login', [UserController::class, 'login'] );
