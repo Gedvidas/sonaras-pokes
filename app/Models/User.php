@@ -21,18 +21,21 @@ class User
         $stmt->bindValue(':username', $this->name, PDO::PARAM_STR);
         $stmt->bindValue(':password', sha1($this->password), PDO::PARAM_STR); // uzhesuojam password
         $stmt->bindValue(':email', $this->email, PDO::PARAM_STR);
-        return $stmt->execute();
+        $result = $stmt->execute();
+        return $result;
     }
 
-    public function getIdByEmail(string $email) {
+    public function getIdByEmail() {
         $sql = "SELECT `id` FROM `users` WHERE email = :email LIMIT 1";
         $stmt = Application::$pdo->prepare($sql);
-        $stmt->bindValue(':email', $email, PDO::PARAM_INT);
+        $stmt->bindValue(':email', $this->email, PDO::PARAM_INT);
         $stmt->execute();
-        return  $stmt->fetchColumn();
+        $result =   $stmt->fetchColumn();
+        return $result;
     }
 
-    public function getUserById(int $id) {
+    public function getUserById(int $id): User
+    {
         $sql = "SELECT * FROM `users` WHERE id = :id LIMIT 1";
         $stmt = Application::$pdo->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);

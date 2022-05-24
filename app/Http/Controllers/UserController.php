@@ -15,7 +15,14 @@ class UserController
         }
 
         else {
-            self::insert($request);
+            $id = self::store($request);
+            if ($id) {
+                 $_SESSION["user_id"] = $id;;
+                header("Location: /");
+            }
+            else {
+                echo 'Registration failed';
+            }
         }
     }
 
@@ -33,25 +40,17 @@ class UserController
         }
     }
 
-    public static function insert(Request $request): bool
+    public static function store(Request $request): int
     {
         $user = self::getUserFromRequest($request);
-        $inserted = $user->create();
-
-//        @todo: senas variantas su javascript
-//        $data = json_decode(file_get_contents('php://input', true));
-//        $username = $data->data->username;
-//        $email = $data->data->email;
-//        $pass1 =$data->data->pass1;
-
-//        @todo: implement validation
-        // Nesukuriamas user objektas
-        if ($inserted) {
-            self::addUserToSessionAndRedirect($user);
+        if ($user->create()) {
+            return $user->getIdByEmail();;
         }
+        return 0;
     }
 
     public static function index() {
+//        var_dump($_SESSION);die();
         if (isset($_SESSION['user_id'])) {
             $user = Application::$user->getUserById($_SESSION['user_id']);
         } else {
@@ -93,15 +92,5 @@ class UserController
         header("Location: /");
 
         exit();
-    }
-
-    /**
-     * @param User $user
-     * @return void
-     */
-    public static function addUserToSessionAndRedirect(User $user): void
-    {
-        $_SESSION["user_id"] = Application::$user->getIdByEmail($user->email);;
-        header("Location: /");
     }
 }
