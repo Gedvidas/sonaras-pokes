@@ -79,4 +79,15 @@ class User
         }
         return $result['id'];
     }
+
+    public function update(string $email, string $name): bool
+    {
+        $id = $this->id;
+        $sql = "UPDATE `users` SET email = :email, username = :name WHERE id = :id";
+        $stmt = Application::$pdo->prepare($sql);
+        $stmt->bindValue(':email', $email, PDO::PARAM_INT);
+        $stmt->bindValue(':name', $name, PDO::PARAM_INT);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        return $stmt->execute();
+    }
 }

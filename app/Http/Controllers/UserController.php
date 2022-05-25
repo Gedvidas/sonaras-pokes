@@ -24,6 +24,7 @@ class UserController
                 header("Location: /");
             }
         }
+        $action = 'register';
         require_once VIEW_ROOT . 'register.php';
 
     }
@@ -48,6 +49,31 @@ class UserController
         require_once VIEW_ROOT . 'login.php';
     }
 
+    public static function edit(Request $request) {
+        if (isset($_SESSION['user_id'])) {
+            $user = Application::$user->getUserById($_SESSION['user_id']);
+            $action = 'edit';
+            (new self())->setOldData($user);
+            require_once VIEW_ROOT . 'edit.php';
+        } else {
+            require_once VIEW_ROOT . '403.php';
+        }
+    }
+
+    public static function update(Request $request) {
+        if (!isset($_SESSION['user_id'])) {
+            require_once VIEW_ROOT . '403.php';
+            return;
+        }
+        $user = Application::$user->getUserById($_SESSION['user_id']);
+        $update = (new self)->validateEdit($request, $user);
+        if ($update) {
+            $update = $user->update($request->getBody()['email'], $request->getBody()['username']);
+        }
+
+        return$update;
+    }
+
     public function store(Request $request): int
     {
         $user = $this->validateRegister($request);
@@ -62,6 +88,7 @@ class UserController
 
     public static function index() {
         if (isset($_SESSION['user_id'])) {
+//            @todo: duplication
             $user = Application::$user->getUserById($_SESSION['user_id']);
         } else {
             $user = false;
@@ -70,16 +97,24 @@ class UserController
         require_once VIEW_ROOT . 'main.php';
     }
 
+    public function validateEdit(Request $request, User $user): bool
+    {
+        $this->validateTextInputs($request);
+        $this->validateExistUsername($request, 'username', 'Vartotojo vardas jau naudojamas', $user->id);
+        if (empty(Application::$errors)) {
+            return true;
+        }
+
+        return false;
+    }
+
     public function validateRegister(Request $request, $action = 'register')
     {
+        $this->validateTextInputs($request);
 
-        $this->validateRequired($request, 'username', 'Vartotojo vardas neivestas');
-        $this->validateRequired($request, 'email', 'Slaptazodis neivestas');
         $this->validateRequired($request, 'pass1', 'Slaptazodis neivestas', true);
         $this->validateRequired($request, 'pass2', 'Slaptazodio pakartojimas neivestas', true);
 
-        $this->validateValidUsername($request, 'username', 'Ivesti neleistini simboliai');
-        $this->validateValidEmail($request, 'email', 'Ivesti neleistini simboliai');
         $this->validateValidPass($request, 'pass1', 'Slaptazodi turi sudaryti bent 1 skaicius ir bent 1 didzioji raide');
 
         if($request->getBody()['pass1'] !== $request->getBody()['pass2']) {
@@ -178,13 +213,14 @@ class UserController
         return true;
     }
 
-    public function validateExistUsername(Request $request, $name, string $error): bool
+    public function validateExistUsername(Request $request, $name, string $error, int $current_user_id = 0): bool
     {
         if (isset(Application::$errors[$name])) {
             return false;
         }
 
-        if ($this->user->existName($request->getBody()[$name])) {
+        $id = $this->user->existName($request->getBody()[$name]);
+        if ($id && $id !== $current_user_id) {
             Application::$errors[$name] = $error;
             return false;
         }
@@ -192,12 +228,13 @@ class UserController
         return true;
     }
 
-    public function validateExistEmail(Request $request, $name, string $error): bool
+    public function validateExistEmail(Request $request, $name, string $error, string $current_user_email = ''): bool
     {
         if (isset(Application::$errors[$name])) {
             return false;
         }
-        if ($this->user->existEmail($request->getBody()[$name])) {
+        $email = $this->user->existEmail($request->getBody()[$name]);
+        if ($email && $email !== $current_user_email) {
             Application::$errors[$name] = $error;
             return false;
         }
@@ -212,5 +249,17 @@ class UserController
         header("Location: /");
 
         exit();
+    }
+
+    public function setOldData(User $user) {
+        Application::$old['username'] = $user->name;
+        Application::$old['email'] = $user->email;
+    }
+
+    public function validateTextInputs(Request $request) {
+        $this->validateRequired($request, 'username', 'Vartotojo vardas neivestas');
+        $this->validateValidUsername($request, 'username', 'Ivesti neleistini simboliai');
+        $this->validateRequired($request, 'email', 'Email neivestas');
+        $this->validateValidEmail($request, 'email', 'Ivesti neleistini simboliai');
     }
 }

@@ -17,7 +17,12 @@
 <?php else: ?>
 <div>
 <!--    @todo CSRF problem. Should add token and use POST method-->
-    <a href="/logout">Logout</a>
+    <div>
+        <a href="/edit">Redaguoti profili</a>
+    </div>
+    <div>
+        <a href="/logout">Logout</a>
+    </div>
 </div>
 <?php endif; ?>
 </div>
