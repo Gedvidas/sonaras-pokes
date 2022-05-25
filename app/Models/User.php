@@ -43,7 +43,7 @@ class User
         return $result;
     }
 
-        public static function existName(string $name) {
+        public function existName(string $name) {
         $sql = "SELECT `id` FROM `users` WHERE username = :username LIMIT 1";
         $stmt = Application::$pdo->prepare($sql);
         $stmt->bindValue(':username', $name, PDO::PARAM_INT);

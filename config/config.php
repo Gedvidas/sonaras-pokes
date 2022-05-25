@@ -24,10 +24,11 @@ define("CSV_FILE", $_SERVER['DOCUMENT_ROOT'] . '/data.csv');
 function getData(string $name, string $text, string $type) : array
 {
     $data = [];
+    $action = '';
     $data['name'] = $name;
     $data['error'] = (isset(Application::$errors[$name])) ? Application::$errors[$name] : false;
     $data['old'] = (isset(Application::$old[$name])) ? Application::$old[$name] : false;
-    $data['conf'] = !$data['error'] && $data['old'];
+    $data['conf'] = !$data['error'] && $data['old'] && $_GET["path"] !== 'login';
     $data['text'] = $text;
     $data['type'] = $type;
 

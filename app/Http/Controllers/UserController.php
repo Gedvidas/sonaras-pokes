@@ -9,11 +9,18 @@ use App\Models\User;
 class UserController
 {
 
+    public User $user;
+
+    public function __construct()
+    {
+        $this->user = Application::$user;
+    }
+
     public static function register(Request $request) {
         if ($request->getMethod() === 'post') {
-            $id = self::store($request);
-            if ($id) {
-                $_SESSION["user_id"] = $id;;
+            $user_id = (new self)->store($request);
+            if ($user_id) {
+                $_SESSION["user_id"] = $user_id;;
                 header("Location: /");
             }
         }
@@ -27,7 +34,7 @@ class UserController
             return;
         }
 
-        $user = self::validateLogin($request);
+        $user = (new self())->validateLogin($request);
         if ($user) {
             $user->id = $user->login();
             if ($user->id) {
@@ -41,9 +48,9 @@ class UserController
         require_once VIEW_ROOT . 'login.php';
     }
 
-    public static function store(Request $request): int
+    public function store(Request $request): int
     {
-        $user = self::getUserFromRequest($request);
+        $user = $this->validateRegister($request);
         if (!$user) {
             return 0;
         }
@@ -63,93 +70,139 @@ class UserController
         require_once VIEW_ROOT . 'main.php';
     }
 
-    public static function getUserFromRequest(Request $request, $action = 'register')
+    public function validateRegister(Request $request, $action = 'register')
     {
-        $user = new User();
-        if ($action === 'register') {
-            if (!isset($request->getBody()['username']) || empty($request->getBody()['username'])) {
-                Application::$errors['username'] = 'Vartotojo vardas neivestas';
-                Application::$old['username'] = false;
-            } else {
-                Application::$old['username'] = $request->getBody()['username'];
-            }
-            if(!preg_match('/^\w{5,}$/', $request->getBody()['username'])) {
-                Application::$errors['username'] = 'Vartotojo vardas blogas';
-            } elseif(User::existName($request->getBody()['username'])) {
-                Application::$errors['username'] = 'Vartotojo vardas jau naudojamas';
-            }
-            else {
-                $user->name = $request->getBody()['username'];
-            }
+
+        $this->validateRequired($request, 'username', 'Vartotojo vardas neivestas');
+        $this->validateRequired($request, 'email', 'Slaptazodis neivestas');
+        $this->validateRequired($request, 'pass1', 'Slaptazodis neivestas', true);
+        $this->validateRequired($request, 'pass2', 'Slaptazodio pakartojimas neivestas', true);
+
+        $this->validateValidUsername($request, 'username', 'Ivesti neleistini simboliai', true);
+        $this->validateValidEmail($request, 'email', 'Ivesti neleistini simboliai');
+        $this->validateValidPass($request, 'pass1', 'Ivesti neleistini simboliai');
+
+        if($request->getBody()['pass1'] !== $request->getBody()['pass2']) {
+            Application::$errors['pass1'] = '*';
+            Application::$errors['pass2'] = 'Nesutampa salptazodziai';
         }
 
-//        --------------------------------------------
-        if (!isset($request->getBody()['email']) || empty($request->getBody()['email'])) {
-            Application::$errors['email'] = 'El. pastas neivestas';
-            Application::$old['email'] = false;
-        } else {
-            Application::$old['email'] = $request->getBody()['email'];
 
-        } if(!filter_var($request->getBody()['email'], FILTER_VALIDATE_EMAIL)) {
-            Application::$errors['email'] = 'El pastas blogas';
-        } elseif($action === 'register' && User::existEmail($request->getBody()['email'])) {
-            Application::$errors['email'] = 'El pasta jau naudojamas';
-        }
-        else {
-            $user->email = $request->getBody()['email'];
-        }
-//        --------------------------------------------
-        if (!isset($request->getBody()['pass1']) || empty($request->getBody()['pass1'])) {
-            Application::$errors['pass1'] = 'Slaptazodis neivestas';
-        } else {
-            $user->password = $request->getBody()['pass1'];
-        }
-        if($action === 'register' && (!preg_match('@[A-Z]@', $request->getBody()['pass1'])) || !preg_match('@[a-z]@', $request->getBody()['pass1'])) {
-            Application::$errors['pass1'] = 'Slaptazodi turi sudaryti bent 1 didzioji raide, bent 1 skaicius';
-        }
-
-        if ($action === 'register') {
-            if (!isset($request->getBody()['pass2']) || empty($request->getBody()['pass2'])) {
-                Application::$errors['pass2'] = 'Slaptazodio pakartojimas neivestas';
-            } elseif($request->getBody()['pass1'] !== $request->getBody()['pass2']) {
-                Application::$errors['pass1'] = '*';
-                Application::$errors['pass2'] = 'Nesutampa salptazodziai';
-            }
-        }
+        //        @todo: sitie du turi butu gale
+        $this->validateExistUsername($request, 'username', 'Vartotojo vardas jau naudojamas');
+        $this->validateExistEmail($request, 'email', 'El pasta jau naudojamas');
 
         if (empty(Application::$errors)) {
-            return $user;
+            $this->user->name = $request->getBody()['username'];
+            $this->user->email =  $request->getBody()['email'];
+            $this->user->password =  $request->getBody()['pass1'];
+            return $this->user;
         }
 
         return false;
     }
 
-    public static function validateLogin(Request $request) {
-        $user = new User();
+    public function validateLogin(Request $request) {
+        $this->validateRequired($request, 'email', 'Neivestas el-pastas');
+        $this->validateRequired($request, 'pass1', 'Neivestas slaptazodis', true);
 
-        if (!isset($request->getBody()['email']) || empty($request->getBody()['email'])) {
-            Application::$errors['email'] = 'El. pastas neivestas';
-            Application::$old['email'] = false;
-        } elseif (!filter_var($request->getBody()['email'], FILTER_VALIDATE_EMAIL)){
-            Application::$errors['email'] = 'Blogi prisijungimo duomenys';
-            Application::$errors['pass1'] = '*';
-
-        } else {
-            Application::$old['email'] = $request->getBody()['email'];
-            $user->email = $request->getBody()['email'];
-        }
-
-        if (!isset($request->getBody()['pass1']) || empty($request->getBody()['pass1'])) {
-            Application::$errors['pass1'] = 'Slaptazodis neivestas';
-        } else {
-            $user->password = $request->getBody()['pass1'];
-        }
+        $this->validateValidEmail($request, 'email', 'Ivesti neleistini simboliai');
+        $this->validateValidPass($request, 'pass1', 'Blogas slaptazodis');
 
         if (empty(Application::$errors)) {
-            return $user;
+            $this->user->email = $request->getBody()['email'];
+            $this->user->password = $request->getBody()['pass1'];
+            return $this->user;
         }
 
         return false;
+    }
+
+    public function validateRequired(Request $request, $name, string $error, bool $empty= false): bool
+    {
+        if (!isset($request->getBody()[$name]) || empty($request->getBody()[$name])) {
+            Application::$errors[$name] = $error;
+            Application::$old[$name] = false;
+            return false;
+        }
+
+        if (!$empty) {
+            Application::$old[$name] = $request->getBody()[$name];
+        } else {
+            Application::$old[$name] = '';
+
+        }
+
+        return true;
+    }
+
+    public function validateValidEmail(Request $request, $name, string $error): bool
+    {
+        if (isset(Application::$errors[$name])) {
+            return false;
+        }
+
+        if (!filter_var($request->getBody()[$name], FILTER_VALIDATE_EMAIL)) {
+            Application::$errors[$name] = $error;
+            return false;
+        }
+
+        return true;
+    }
+
+    public function validateValidUsername(Request $request, $name, string $error): bool
+    {
+        if (isset(Application::$errors[$name])) {
+            return false;
+        }
+
+        if (!preg_match('@[A-Z]@', $request->getBody()[$name])) {
+            Application::$errors[$name] = $error;
+            return false;
+        }
+
+        return true;
+    }
+
+    public function validateValidPass(Request $request, $name, string $error): bool
+    {
+        if (isset(Application::$errors[$name])) {
+            return false;
+        }
+
+        if ((!preg_match('@[A-Z]@', $request->getBody()[$name])) || !preg_match('@[a-z]@', $request->getBody()[$name])) {
+            Application::$errors[$name] = $error;
+            return false;
+        }
+
+        return true;
+    }
+
+    public function validateExistUsername(Request $request, $name, string $error): bool
+    {
+        if (isset(Application::$errors[$name])) {
+            return false;
+        }
+
+        if ($this->user->existName($request->getBody()[$name])) {
+            Application::$errors[$name] = $error;
+            return false;
+        }
+
+        return true;
+    }
+
+    public function validateExistEmail(Request $request, $name, string $error): bool
+    {
+        if (isset(Application::$errors[$name])) {
+            return false;
+        }
+        if ($this->user->existEmail($request->getBody()[$name])) {
+            Application::$errors[$name] = $error;
+            return false;
+        }
+
+        return true;
     }
 
     public static function logout() {
