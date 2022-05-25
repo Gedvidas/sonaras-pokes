@@ -1,6 +1,5 @@
 <?php
 
-use App\Controllers\UserController;
 use App\Core\Application;
 
 // Autoload and config

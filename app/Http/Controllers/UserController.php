@@ -10,37 +10,35 @@ class UserController
 {
 
     public static function register(Request $request) {
-        if ($request->getMethod() === 'get') {
-            require_once VIEW_ROOT . 'register.php';
-        }
-        else {
+        if ($request->getMethod() === 'post') {
             $id = self::store($request);
             if ($id) {
-                 $_SESSION["user_id"] = $id;;
+                $_SESSION["user_id"] = $id;;
                 header("Location: /");
             }
-            else {
-//                var_dump(var_dump(Application::$errors)); die();
-                require_once VIEW_ROOT . 'register.php';
-            }
         }
+        require_once VIEW_ROOT . 'register.php';
+
     }
 
     public static function login(Request $request) {
-        if ($request->getMethod() === 'get') {
+        if ($request->getMethod() !== 'post') {
             require_once VIEW_ROOT . 'login.php';
-        } else {
-            $user = self::getUserFromRequest($request, 'login');
-            if (!$user) {
-                return false;
-            }
+            return;
+        }
+
+        $user = self::validateLogin($request);
+        if ($user) {
             $user->id = $user->login();
             if ($user->id) {
                 $_SESSION["user_id"] = $user->id;;
                 header("Location: /");
+            } else {
+                Application::$errors['email'] = 'Blogi prisijungimo duomenys';
+                Application::$errors['pass1'] = '*';
             }
-            echo 'Blogi prisijungimo duomenys';
         }
+        require_once VIEW_ROOT . 'login.php';
     }
 
     public static function store(Request $request): int
@@ -105,9 +103,8 @@ class UserController
             Application::$errors['pass1'] = 'Slaptazodis neivestas';
         } else {
             $user->password = $request->getBody()['pass1'];
-
         }
-        if(!preg_match('@[A-Z]@', $request->getBody()['pass1']) || !preg_match('@[a-z]@', $request->getBody()['pass1'])) {
+        if($action === 'register' && (!preg_match('@[A-Z]@', $request->getBody()['pass1'])) || !preg_match('@[a-z]@', $request->getBody()['pass1'])) {
             Application::$errors['pass1'] = 'Slaptazodi turi sudaryti bent 1 didzioji raide, bent 1 skaicius';
         }
 
@@ -118,6 +115,34 @@ class UserController
                 Application::$errors['pass1'] = '*';
                 Application::$errors['pass2'] = 'Nesutampa salptazodziai';
             }
+        }
+
+        if (empty(Application::$errors)) {
+            return $user;
+        }
+
+        return false;
+    }
+
+    public static function validateLogin(Request $request) {
+        $user = new User();
+
+        if (!isset($request->getBody()['email']) || empty($request->getBody()['email'])) {
+            Application::$errors['email'] = 'El. pastas neivestas';
+            Application::$old['email'] = false;
+        } elseif (!filter_var($request->getBody()['email'], FILTER_VALIDATE_EMAIL)){
+            Application::$errors['email'] = 'Blogi prisijungimo duomenys';
+            Application::$errors['pass1'] = '*';
+
+        } else {
+            Application::$old['email'] = $request->getBody()['email'];
+            $user->email = $request->getBody()['email'];
+        }
+
+        if (!isset($request->getBody()['pass1']) || empty($request->getBody()['pass1'])) {
+            Application::$errors['pass1'] = 'Slaptazodis neivestas';
+        } else {
+            $user->password = $request->getBody()['pass1'];
         }
 
         if (empty(Application::$errors)) {

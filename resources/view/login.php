@@ -1,23 +1,21 @@
 <?php require_once VIEW_ROOT . 'partials/header.php' ?>
-<?php $action = 'Login'; ?>
+<?php $action = 'login'; ?>
 
-<div >
-    <form method="post" action="/login" class="px-4">
-        <!--        Login form-->
-        <?php require_once VIEW_ROOT . 'components/email.php' ?>
-        <br>
-        <?php require_once VIEW_ROOT . 'components/password.php' ?>
-        <br>
-        <?php require_once VIEW_ROOT . 'components/button.php' ?>
 
-        <!--        @todo: move to component-->
-        <!--        Errors and Confirmations-->
-        <div id="error" class="alert alert-danger hidden d-none" role="alert">
-        </div>
-        <div id="confirmation" class="alert alert-success d-none" role="alert">
-        </div>
-    </form>
+<form method="post" action="/<?php echo $action; ?>">
+    <?php
+//    echo \App\Core\Application::$errors; die();
+    $data = getData('email', 'Elektroninis pastas', 'email');
+    include VIEW_ROOT . 'components/input.php';
 
-</div>
+    $data = getData('pass1', 'Slaptazodis', 'password');
+    include VIEW_ROOT . 'components/input.php';
+
+
+    include VIEW_ROOT . 'components/button.php';
+
+    ?>
+</form>
+
 <?php require_once VIEW_ROOT . 'partials/footer.php' ?>
 
