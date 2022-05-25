@@ -80,7 +80,7 @@ class UserController
 
         $this->validateValidUsername($request, 'username', 'Ivesti neleistini simboliai');
         $this->validateValidEmail($request, 'email', 'Ivesti neleistini simboliai');
-        $this->validateValidPass($request, 'pass1', 'Ivesti neleistini simboliai');
+        $this->validateValidPass($request, 'pass1', 'Slaptazodi turi sudaryti bent 1 skaicius ir bent 1 didzioji raide');
 
         if($request->getBody()['pass1'] !== $request->getBody()['pass2']) {
             Application::$errors['pass1'] = '*';
@@ -107,7 +107,7 @@ class UserController
         $this->validateRequired($request, 'pass1', 'Neivestas slaptazodis', true);
 
         $this->validateValidEmail($request, 'email', 'Ivesti neleistini simboliai');
-        $this->validateValidPass($request, 'pass1', 'Blogas slaptazodis');
+        $this->validateValidPass($request, 'pass1', 'Slaptazodi turi sudaryti bent 1 skaicius ir bent 1 didzioji raide');
 
         if (empty(Application::$errors)) {
             $this->user->email = $request->getBody()['email'];
@@ -170,7 +170,7 @@ class UserController
             return false;
         }
 
-        if ((!preg_match('@[A-Z]@', $request->getBody()[$name])) || !preg_match('@[a-z]@', $request->getBody()[$name])) {
+        if (!preg_match('/^[A-Za-z0-9]*([A-Z][A-Za-z0-9]*\d|\d[A-Za-z0-9]*[A-Z])[A-Za-z0-9]*$/', $request->getBody()[$name])) {
             Application::$errors[$name] = $error;
             return false;
         }
