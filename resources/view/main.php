@@ -1,7 +1,7 @@
 <?php require_once VIEW_ROOT . 'partials/header.php' ?>
 
 <div>
-    <h1>
+    <h1 id="skalaka">
 <!--        --><?php //var_dump($user); die(); ?>
         Hello, <?php if ($user) {echo $user->name;} else {echo 'Guest';} ?>
     </h1>
@@ -44,8 +44,16 @@
                 <th scope="row"><?php echo $user['id']; ?></th>
                 <td><?php echo $user['username']; ?></td>
                 <td><?php echo $user['email']; ?></td>
-                <td><?php echo $user['pokes']; ?></td>
-                <td><button type="button" class="btn btn-primary" id="poke-<?php echo $user['id']; ?>">Poke</button></td>
+                <td id="<?php echo 'pokeall-' . $user['id']; ?>"><?php echo $user['pokes']; ?></td>
+                <td>
+                    <button type="button"
+                            class="btn btn-primary"
+                            data-value="<?php echo $user['pokes']; ?>"
+                            onclick="poke('<?php echo 'poke-' . $user['id']; ?>', '<?php echo $user['pokes']; ?>')"
+                            id="<?php echo 'poke-' . $user['id']; ?>">
+                        Poke
+                    </button>
+                </td>
             </tr>
             <?php endforeach; ?>
             </tbody>
