@@ -68,10 +68,18 @@ class UserController
         $user = Application::$user->getUserById($_SESSION['user_id']);
         $update = (new self)->validateEdit($request, $user);
         if ($update) {
-            $update = $user->update($request->getBody()['email'], $request->getBody()['username']);
+            $password = false;
+//            @todo: antra karta kreipiuos i ta pacia funkcija
+            if ((new self)->updatingPassword($request,'pass0', 'pass1', 'pass2')) {
+                $password = $request->getBody()['pass1'];
+            }
+            $update = $user->update($request->getBody()['email'], $request->getBody()['username'], $password);
+            if ($update) {
+                Application::$confirmation = 'Vartotojo profilis sekmingai atnaujintas';
+            }
         }
 
-        return$update;
+        require_once VIEW_ROOT . 'edit.php';
     }
 
     public function store(Request $request): int
@@ -100,7 +108,19 @@ class UserController
     public function validateEdit(Request $request, User $user): bool
     {
         $this->validateTextInputs($request);
-        $this->validateExistUsername($request, 'username', 'Vartotojo vardas jau naudojamas', $user->id);
+        $this->validateUniqueUsername($request, 'username', 'Vartotojo vardas jau naudojamas', $user->id);
+        $this->validateUniqueEmail($request, 'email', 'EL-pastas vardas jau naudojamas', $user->email);
+
+//        If all 3 password imputs are blank - we are not updating and validating password
+        if ($this->updatingPassword($request,'pass0', 'pass1', 'pass2')) {
+            $this->validateRequired($request, 'pass0', 'pass0 neivestas',true);
+            $this->validateRequired($request, 'pass1', 'pass0 neivestas',true);
+            $this->validateRequired($request, 'pass2', 'pass2 neivestas',true);
+            $this->validateValidPass($request, 'pass1','Slaptazodi turi sudaryti bent 1 skaicius ir bent 1 didzioji raide');
+            $this->validatePasswordConfirm($request, 'pass1', 'pass2', 'Slaptazodziai nesutampa');
+            $this->validateCorrectPassword($request, 'pass0', 'Suvestas blogas slaptazodis');
+        }
+
         if (empty(Application::$errors)) {
             return true;
         }
@@ -117,15 +137,12 @@ class UserController
 
         $this->validateValidPass($request, 'pass1', 'Slaptazodi turi sudaryti bent 1 skaicius ir bent 1 didzioji raide');
 
-        if($request->getBody()['pass1'] !== $request->getBody()['pass2']) {
-            Application::$errors['pass1'] = '*';
-            Application::$errors['pass2'] = 'Nesutampa salptazodziai';
-        }
+        $this->validatePasswordConfirm($request, 'pass1', 'pass2', 'Slaptazodziai nesutampa');
 
 
         //        @todo: sitie du turi butu gale
-        $this->validateExistUsername($request, 'username', 'Vartotojo vardas jau naudojamas');
-        $this->validateExistEmail($request, 'email', 'El pasta jau naudojamas');
+        $this->validateUniqueUsername($request, 'username', 'Vartotojo vardas jau naudojamas');
+        $this->validateUniqueEmail($request, 'email', 'El pasta jau naudojamas');
 
         if (empty(Application::$errors)) {
             $this->user->name = $request->getBody()['username'];
@@ -213,7 +230,7 @@ class UserController
         return true;
     }
 
-    public function validateExistUsername(Request $request, $name, string $error, int $current_user_id = 0): bool
+    public function validateUniqueUsername(Request $request, $name, string $error, int $current_user_id = 0): bool
     {
         if (isset(Application::$errors[$name])) {
             return false;
@@ -228,7 +245,7 @@ class UserController
         return true;
     }
 
-    public function validateExistEmail(Request $request, $name, string $error, string $current_user_email = ''): bool
+    public function validateUniqueEmail(Request $request, $name, string $error, string $current_user_email = ''): bool
     {
         if (isset(Application::$errors[$name])) {
             return false;
@@ -261,5 +278,40 @@ class UserController
         $this->validateValidUsername($request, 'username', 'Ivesti neleistini simboliai');
         $this->validateRequired($request, 'email', 'Email neivestas');
         $this->validateValidEmail($request, 'email', 'Ivesti neleistini simboliai');
+    }
+
+    public function updatingPassword(Request $request, $pass1, string $pass2, string $pass3): bool
+    {
+        $updating = false;
+        if (isset($request->getBody()[$pass1]) && !empty($request->getBody()[$pass1])) {
+            $updating = true;
+        }
+        if (isset($request->getBody()[$pass2]) && !empty($request->getBody()[$pass2])) {
+            $updating = true;
+        }
+        if (isset($request->getBody()[$pass3]) && !empty($request->getBody()[$pass3])) {
+            $updating = true;
+        }
+
+        return $updating;
+    }
+
+    public function validatePasswordConfirm(Request $request, string $pass1, string $pass2, string $error) {
+        if($request->getBody()[$pass1] !== $request->getBody()[$pass2]) {
+            Application::$errors[$pass1] = '*';
+            Application::$errors[$pass2] = $error;
+        }
+    }
+
+    public function validateCorrectPassword(Request $request, string $pass, string $error): bool
+    {
+        if (!$this->user->isValidPassword(
+            $_SESSION['user_id'],
+            $request->getBody()[$pass])) {
+            Application::$errors[$pass] = $error;
+            return true;
+        }
+
+        return false;
     }
 }

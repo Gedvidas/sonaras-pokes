@@ -35,7 +35,7 @@ class User
     }
 
     public static function existEmail(string  $email){
-        $sql = "SELECT `id` FROM `users` WHERE email = :email LIMIT 1";
+        $sql = "SELECT `email` FROM `users` WHERE email = :email LIMIT 1";
         $stmt = Application::$pdo->prepare($sql);
         $stmt->bindValue(':email', $email, PDO::PARAM_INT);
         $stmt->execute();
@@ -80,12 +80,36 @@ class User
         return $result['id'];
     }
 
-    public function update(string $email, string $name): bool
+    public function isValidPassword(int $id, string $password): bool
+    {
+        $sql = "SELECT `id` FROM `users` WHERE `id` = :id AND `password` = :password LIMIT 1";
+        $stmt = Application::$pdo->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_STR);
+        $stmt->bindValue(':password', sha1($password), PDO::PARAM_STR);
+        $stmt->execute();
+        $result =  $stmt->fetch();
+        if(empty($result)) {
+            return false;
+        }
+        return true;
+    }
+
+    public function update(string $email, string $name, $password = false): bool
     {
         $id = $this->id;
-        $sql = "UPDATE `users` SET email = :email, username = :name WHERE id = :id";
+        $sql1 = "UPDATE `users` SET email = :email, username = :name ";
+        $sql2 = "";
+        if ($password) {
+            $sql2 = ", password = :password";
+        }
+        $sql3 = " WHERE id = :id";
+        $sql = $sql1 . $sql2 . $sql3;
+
         $stmt = Application::$pdo->prepare($sql);
         $stmt->bindValue(':email', $email, PDO::PARAM_INT);
+        if ($password) {
+            $stmt->bindValue(':password', sha1($password), PDO::PARAM_INT);
+        }
         $stmt->bindValue(':name', $name, PDO::PARAM_INT);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();

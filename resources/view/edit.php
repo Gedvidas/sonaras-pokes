@@ -1,4 +1,6 @@
-<?php require_once VIEW_ROOT . 'partials/header.php';
+<?php use App\Core\Application;
+
+require_once VIEW_ROOT . 'partials/header.php';
 $action = 'edit'; ?>
 
 <form method="post" action="/<?php echo $action; ?>">
@@ -23,5 +25,11 @@ $action = 'edit'; ?>
 
     ?>
 </form>
+
+<?php if (isset(Application::$confirmation) && !empty(Application::$confirmation)): ?>
+    <div class="alert alert-success" role="alert">
+        <?php echo Application::$confirmation; ?>
+    </div>
+<?php endif; ?>
 
 <?php require_once VIEW_ROOT . 'partials/footer.php' ?>
