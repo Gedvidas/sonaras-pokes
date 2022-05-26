@@ -112,16 +112,24 @@ class UserController
         $this->validateUniqueEmail($request, 'email', 'EL-pastas vardas jau naudojamas', $user->email);
 
 //        If all 3 password imputs are blank - we are not updating and validating password
-        if ($this->updatingPassword($request,'pass0', 'pass1', 'pass2')) {
+        $updatingPass = $this->updatingPassword($request,'pass0', 'pass1', 'pass2');
+        if ($updatingPass) {
             $this->validateRequired($request, 'pass0', 'pass0 neivestas',true);
             $this->validateRequired($request, 'pass1', 'pass0 neivestas',true);
             $this->validateRequired($request, 'pass2', 'pass2 neivestas',true);
             $this->validateValidPass($request, 'pass1','Slaptazodi turi sudaryti bent 1 skaicius ir bent 1 didzioji raide');
             $this->validatePasswordConfirm($request, 'pass1', 'pass2', 'Slaptazodziai nesutampa');
-            $this->validateCorrectPassword($request, 'pass0', 'Suvestas blogas slaptazodis');
+            $this->validateOldAndNewPass($request, 'pass0', 'pass1', 'Naujas slaptazodis, negali buti toks pats kaip senas');
+            if (!$this->isError()) {
+                $this->validateCorrectPassword($request, 'pass0', 'Suvestas blogas slaptazodis');
+            }
         }
 
-        if (empty(Application::$errors)) {
+        if (!$this->isError()) {
+            $this->validateNewData($request, $user, 'username', 'email', 'Nei vienas laukas nepakeistas', $updatingPass);
+        }
+
+        if (!$this->isError()) {
             return true;
         }
 
@@ -303,8 +311,19 @@ class UserController
         }
     }
 
+    public function validateOldAndNewPass(Request $request, string $pass1, string $pass2, string $error )
+    {
+        if ($request->getBody()[$pass1] === $request->getBody()[$pass2]) {
+            Application::$errors[$pass1] = $error;
+            Application::$errors[$pass2] = '*';
+        }
+    }
+
     public function validateCorrectPassword(Request $request, string $pass, string $error): bool
     {
+        if ($this->isNoError()) {
+            return false;
+        }
         if (!$this->user->isValidPassword(
             $_SESSION['user_id'],
             $request->getBody()[$pass])) {
@@ -313,5 +332,20 @@ class UserController
         }
 
         return false;
+    }
+
+    public function isError() {
+        return !empty(Application::$errors);
+    }
+
+    public function validateNewData(Request $request, User $user, string $name, string $email, string $error, bool $updatingPass = false): bool
+    {
+        if ($user->email === $request->getBody()[$email] && $user->name === $request->getBody()[$name] && !$updatingPass) {
+            Application::$errors[$name] = $error;
+            Application::$errors[$email] = '*';
+            return false;
+        }
+
+        return true;
     }
 }
