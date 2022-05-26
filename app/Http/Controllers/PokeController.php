@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Poke;
-use function Composer\Autoload\includeFile;
 
 class PokeController
 {
@@ -45,7 +44,8 @@ class PokeController
         ]);
     }
 
-    public function canPoke(int $from, int $to){
+    public function canPoke(int $from, int $to): bool
+    {
         return $this->poke->canPoke($from, $to);
     }
 }

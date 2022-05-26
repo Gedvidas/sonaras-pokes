@@ -9,15 +9,11 @@ function poke(id, pokes) {
             "Content-Type": "application/json; charset=UTF-8",
         },
     })
-
         .then((response) => response.json())
         .then((data) => {
             if (data.response.conf) {
-                console.log(idFull)
                 document.getElementById(idFull).innerHTML = (parseInt(pokes)+1)
 
             }
         })
-
-
 }
