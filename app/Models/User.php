@@ -12,6 +12,7 @@ class User
     public string $password;
     public int $pokes;
     public $id;
+    public string $table = 'users';
 
     public function create(): bool
     {
@@ -113,5 +114,35 @@ class User
         $stmt->bindValue(':name', $name, PDO::PARAM_INT);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         return $stmt->execute();
+    }
+
+    public function getAllExceptOne(int $id) {
+        $sql = "SELECT * FROM `users` WHERE id != :id";
+        $stmt = Application::$pdo->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result =  $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if(empty($result)) {
+            return array();
+        }
+        return $result;
+    }
+
+    public function getAllWithPokes() {
+        $sql = "
+                SELECT users.id, users.username, users.email, 
+                       ( SELECT COUNT(*) FROM pokes WHERE users.id = pokes.user_to ) as pokes 
+                FROM `users` 
+                ORDER BY pokes DESC
+                ";
+        $stmt = Application::$pdo->prepare($sql);
+        $stmt->execute();
+        $result =  $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if(empty($result)) {
+            return array();
+        }
+        return $result;
     }
 }

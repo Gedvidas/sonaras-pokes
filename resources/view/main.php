@@ -23,8 +23,40 @@
     <div>
         <a href="/logout">Logout</a>
     </div>
+
+
+
+    <?php if (!empty($users)): ?>
+    <div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th scope="col">#</th>
+                <th scope="col">Username</th>
+                <th scope="col">Email</th>
+                <th scope="col">Pokes</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <?php foreach ($users as $user): ?>
+            <tr>
+                <th scope="row"><?php echo $user['id']; ?></th>
+                <td><?php echo $user['username']; ?></td>
+                <td><?php echo $user['email']; ?></td>
+                <td><?php echo $user['pokes']; ?></td>
+                <td><button type="button" class="btn btn-primary" id="poke-<?php echo $user['id']; ?>">Poke</button></td>
+            </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
+    </div>
+    <?php endif; ?>
+
+
+
 </div>
 <?php endif; ?>
 </div>
-<?php require_once VIEW_ROOT . 'partials/footer.php' ?>
 
+<?php require_once VIEW_ROOT . 'partials/footer.php' ?>

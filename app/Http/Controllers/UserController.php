@@ -95,11 +95,15 @@ class UserController
     }
 
     public static function index() {
+//        @todo: perkelti i konstruktoriu?
+        $user = false;
+        $users = [];
         if (isset($_SESSION['user_id'])) {
 //            @todo: duplication
-            $user = Application::$user->getUserById($_SESSION['user_id']);
-        } else {
-            $user = false;
+            $user = (new self)->user->getUserById($_SESSION['user_id']);
+//            $users = (new self)->user->getAllExceptOne($_SESSION['user_id']);
+            $users = (new self)->user->getAllWithPokes();
+//            var_dump($users);die();
         }
 
         require_once VIEW_ROOT . 'main.php';
@@ -334,7 +338,8 @@ class UserController
         return false;
     }
 
-    public function isError() {
+    public function isError(): bool
+    {
         return !empty(Application::$errors);
     }
 
