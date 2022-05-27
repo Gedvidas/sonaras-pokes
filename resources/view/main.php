@@ -1,8 +1,7 @@
 <?php require_once VIEW_ROOT . 'partials/header.php' ?>
 
 <div>
-    <h1 id="skalaka">
-<!--        --><?php //var_dump($user); die(); ?>
+    <h1>
         Hello, <?php if ($user) {echo $user->name;} else {echo 'Guest';} ?>
     </h1>
 </div>
@@ -17,6 +16,14 @@
 <?php else: ?>
 <div>
 <!--    @todo CSRF problem. Should add token and use POST method-->
+
+    <div>
+        <a href="/received">Received Pokes</a>
+    </div>
+    <div>
+        <a href="/sent">Sent Pokes</a>
+    </div>
+
     <div>
         <a href="/edit">Redaguoti profili</a>
     </div>

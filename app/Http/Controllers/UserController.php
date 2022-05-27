@@ -20,7 +20,7 @@ class UserController
         if ($request->getMethod() === 'post') {
             $user_id = (new self)->store($request);
             if ($user_id) {
-                $_SESSION["user_id"] = $user_id;;
+                $_SESSION["user_id"] = $user_id;
                 header("Location: /");
             }
         }
@@ -39,7 +39,7 @@ class UserController
         if ($user) {
             $user->id = $user->login();
             if ($user->id) {
-                $_SESSION["user_id"] = $user->id;;
+                $_SESSION["user_id"] = $user->id;
                 header("Location: /");
             } else {
                 Application::$errors['email'] = 'Blogi prisijungimo duomenys';
@@ -49,7 +49,7 @@ class UserController
         require_once VIEW_ROOT . 'login.php';
     }
 
-    public static function edit(Request $request) {
+    public static function edit() {
         if (isset($_SESSION['user_id'])) {
             $user = Application::$user->getUserById($_SESSION['user_id']);
             $action = 'edit';
@@ -89,7 +89,7 @@ class UserController
             return 0;
         }
         if ($user->create()) {
-            return $user->getIdByEmail();;
+            return $user->getIdByEmail();
         }
         return 0;
     }
@@ -101,7 +101,7 @@ class UserController
         if (isset($_SESSION['user_id'])) {
 //            @todo: duplication
             $user = (new self)->user->getUserById($_SESSION['user_id']);
-            $users = (new self)->user->getAllWithPokes($_SESSION['user_id']);
+            $users = (new self)->user->getAllExceptSelfWithPokes($_SESSION['user_id']);
         }
 
        require_once VIEW_ROOT . 'main.php';
@@ -138,7 +138,7 @@ class UserController
         return false;
     }
 
-    public function validateRegister(Request $request, $action = 'register')
+    public function validateRegister(Request $request)
     {
         $this->validateTextInputs($request);
 
@@ -323,7 +323,7 @@ class UserController
 
     public function validateCorrectPassword(Request $request, string $pass, string $error): bool
     {
-        if ($this->isNoError()) {
+        if ($this->isError()) {
             return false;
         }
         if (!$this->user->isValidPassword(
@@ -350,5 +350,15 @@ class UserController
         }
 
         return true;
+    }
+
+    public function received(Request $request) {
+        if (isset($_SESSION['user_id'])) {
+            $users = [];
+            $users = Application::$user->getMyPokers($_SESSION['user_id']);
+            require_once VIEW_ROOT . 'received.php';
+        } else {
+            require_once VIEW_ROOT . '403.php';
+        }
     }
 }

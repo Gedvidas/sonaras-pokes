@@ -129,13 +129,34 @@ class User
         return $result;
     }
 
-    public function getAllWithPokes(int $id) {
+    public function getAllExceptSelfWithPokes(int $id): array
+    {
         $sql = "
                 SELECT users.id, users.username, users.email, 
                        ( SELECT COUNT(*) FROM pokes WHERE users.id = pokes.user_to ) as pokes 
                 FROM `users` 
                 WHERE users.id != :id
                 ORDER BY pokes DESC
+                ";
+        $stmt = Application::$pdo->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+        $result =  $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if(empty($result)) {
+            return array();
+        }
+        return $result;
+    }
+
+    public function getMyPokers(int $id): array
+    {
+        $sql = "
+                SELECT pokes.user_from, users.username, pokes.created_at 
+                FROM `users` 
+                INNER JOIN `pokes`
+                    ON users.id = pokes.user_from
+                    AND pokes.user_to = :id
                 ";
         $stmt = Application::$pdo->prepare($sql);
         $stmt->bindValue(':id', $id, PDO::PARAM_INT);

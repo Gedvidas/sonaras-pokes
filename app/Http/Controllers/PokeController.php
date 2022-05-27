@@ -60,9 +60,6 @@ class PokeController
         $mj = new \Mailjet\Client($_ENV['MAIL_API_KEY'], $_ENV['MAIL_API_SECRET'],true,['version' => 'v3.1']);
         $body = self::getEmailBody($senderEmail, $senderName, $recipientEmail, $recipientName);
         $response = $mj->post(Resources::$Email, ['body' => $body]);
-//        @todo: pretty error msg examples
-/*        highlight_string("<?php\n\$response =\n" . var_export($response, true) . ";\n?>");die();*/
-//        echo '<pre>' . var_export($response, true) . '</pre>';die();
     }
 
     public static function getEmailBody(string $senderEmail, string $senderName, string $recipientEmail, string $recipientName) {

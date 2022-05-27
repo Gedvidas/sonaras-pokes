@@ -34,3 +34,8 @@ function getData(string $name, string $text, string $type) : array
 
     return $data;
 }
+
+function dd($response) {
+    highlight_string("<?php\n\$response =\n" . var_export($response, true) . ";\n?>");
+    die();
+}
