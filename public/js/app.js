@@ -1,4 +1,6 @@
 function poke(id, pokes) {
+
+    let id_button = id
     id = id.slice(5)
     let idFull = 'pokeall-'+id
     let sendData = {"id" : id};
@@ -11,9 +13,11 @@ function poke(id, pokes) {
     })
         .then((response) => response.json())
         .then((data) => {
+            console.log(id_button)
+
+            document.getElementById(id_button).classList.add("disabled");
             if (data.response.conf) {
                 document.getElementById(idFull).innerHTML = (parseInt(pokes)+1)
-
             }
         })
 }
