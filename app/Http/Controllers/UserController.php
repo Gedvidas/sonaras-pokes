@@ -101,9 +101,7 @@ class UserController
         if (isset($_SESSION['user_id'])) {
 //            @todo: duplication
             $user = (new self)->user->getUserById($_SESSION['user_id']);
-//            $users = (new self)->user->getAllExceptOne($_SESSION['user_id']);
-            $users = (new self)->user->getAllWithPokes();
-//            var_dump($users);die();
+            $users = (new self)->user->getAllWithPokes($_SESSION['user_id']);
         }
 
        require_once VIEW_ROOT . 'main.php';

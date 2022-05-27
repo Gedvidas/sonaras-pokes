@@ -129,14 +129,16 @@ class User
         return $result;
     }
 
-    public function getAllWithPokes() {
+    public function getAllWithPokes(int $id) {
         $sql = "
                 SELECT users.id, users.username, users.email, 
                        ( SELECT COUNT(*) FROM pokes WHERE users.id = pokes.user_to ) as pokes 
                 FROM `users` 
+                WHERE users.id != :id
                 ORDER BY pokes DESC
                 ";
         $stmt = Application::$pdo->prepare($sql);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
         $stmt->execute();
         $result =  $stmt->fetchAll(PDO::FETCH_ASSOC);
 
