@@ -13,8 +13,7 @@ function poke(id, pokes) {
     })
         .then((response) => response.json())
         .then((data) => {
-            console.log(id_button)
-
+            console.log(data)
             document.getElementById(id_button).classList.add("disabled");
             if (data.response.conf) {
                 document.getElementById(idFull).innerHTML = (parseInt(pokes)+1)

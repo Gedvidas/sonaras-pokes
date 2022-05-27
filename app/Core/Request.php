@@ -45,4 +45,16 @@ class Request
     {
         return $this->getMethod() === 'post';
     }
+
+    public function getApiRequestData(){
+        $id = json_decode(file_get_contents('php://input', true));
+        if ($id) {
+            $id = (array) $id;
+            if (isset($id['id'])) {
+                $id = $id['id'];
+            }
+        }
+
+        return $id;
+    }
 }

@@ -106,7 +106,7 @@ class UserController
 //            var_dump($users);die();
         }
 
-        require_once VIEW_ROOT . 'main.php';
+       require_once VIEW_ROOT . 'main.php';
     }
 
     public function validateEdit(Request $request, User $user): bool

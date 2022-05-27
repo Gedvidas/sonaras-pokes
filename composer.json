@@ -9,6 +9,8 @@
   "require": {
     "ext-json": "*",
     "ext-pdo": "*",
-    "vlucas/phpdotenv": "^5.4"
+    "vlucas/phpdotenv": "^5.4",
+    "mailjet/mailjet-apiv3-php": "^1.5",
+    "mailchimp/marketing": "^3.0"
   }
 }
